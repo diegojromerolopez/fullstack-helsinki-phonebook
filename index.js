@@ -23,6 +23,13 @@ let persons = [
     }
   ]
 
+  app.get('/', (req, res) => {
+    res
+        .set('Content-Type', 'text/html')
+        .status(200).header('')
+        .send(`<p>Phonebook API</p>`)
+  })
+  
   app.get('/info', (req, res) => {
     res
         .set('Content-Type', 'text/html')
