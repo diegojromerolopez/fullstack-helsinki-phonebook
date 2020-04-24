@@ -4,6 +4,10 @@
   "description": "Phonebook backend for the Full stack open 2020 course",
   "main": "index.js",
   "scripts": {
+    "build:ui": "BACKEND_ROOT=$(pwd) && FRONTEND_ROOT=$(cat frontend_path) && rm -rf build && cd $FRONTEND_ROOT && npm run build --prod && cp -r build $BACKEND_ROOT",
+    "deploy": "git push heroku master",
+    "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && npm run deploy",    
+    "logs:prod": "heroku logs --tail",
     "start": "node index.js",
     "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
