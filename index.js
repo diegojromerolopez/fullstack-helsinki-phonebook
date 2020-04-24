@@ -5,6 +5,7 @@ const cors = require('cors')
 const app = express()
 
 app.use(express.json())
+app.use(express.static('build'))
 app.use(cors())
 
 morgan.token('body', (req, res) => JSON.stringify(req.body) );
@@ -22,13 +23,6 @@ let persons = [
         number: "999999999"
     }
   ]
-
-  app.get('/', (req, res) => {
-    res
-        .set('Content-Type', 'text/html')
-        .status(200).header('')
-        .send(`<p>Phonebook API</p>`)
-  })
   
   app.get('/info', (req, res) => {
     res
