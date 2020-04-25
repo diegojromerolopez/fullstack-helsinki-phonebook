@@ -103,5 +103,5 @@ dist
 # TernJS port file
 .tern-port
 
-# Useful for package.json scripts
-frontend_path
+# Ignore frontend build files
+frontend/build

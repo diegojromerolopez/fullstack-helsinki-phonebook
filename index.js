@@ -6,13 +6,15 @@ const cors = require('cors')
 const app = express()
 
 app.use(express.json())
-app.use(express.static('build'))
+app.use(express.static('frontend/build'))
 app.use(cors())
 
 morgan.token('body', (req, res) => JSON.stringify(req.body) );
 app.use(morgan(':method :url :status :response-time ms - :res[content-length] :body - :req[content-length]'))
 
 const Person = require('./models/person')
+
+const ALLOW_PERSON_UPDATE_FROM_POST = process.env.ALLOW_PERSON_UPDATE_FROM_POST === "true"
 
 // Get phonebook info
 app.get('/info', (req, res) => {
@@ -56,27 +58,35 @@ app.post('/api/persons', (req, res, next) => {
         return res.status(400)
                   .json({error: 'name or number are missing'})
     }
-    // Check if the name exists, if that's the case, update
-    // that person's phone number
-    Person.findOne({name}).then(person =>{
-        if(person){
-            Person.findByIdAndUpdate(person._id, {number}, { new: true })
-            .then(updatedPerson => {
-                res.json(updatedPerson.toJSON())
-            })
-            .catch(error => next(error))
-        }else{
-            const newPerson = new Person({name, number})
-            newPerson.save()
-            .then(savedPerson => {
-                res.json(savedPerson.toJSON())
-            })
-            .catch(error => next(error))
-        }
-    })
-    .catch(error => next(error))
 
-    
+    if(ALLOW_PERSON_UPDATE_FROM_POST){
+        // Check if the name exists, if that's the case, update
+        // that person's phone number
+        Person.findOne({name}).then(person =>{
+            if(person){
+                Person.findByIdAndUpdate(person._id, {number}, { new: true })
+                .then(updatedPerson => {
+                    res.json(updatedPerson.toJSON())
+                })
+                .catch(error => next(error))
+            }else{
+                const newPerson = new Person({name, number})
+                newPerson.save()
+                .then(savedPerson => {
+                    res.json(savedPerson.toJSON())
+                })
+                .catch(error => next(error))
+            }
+        })
+        .catch(error => next(error))
+    }else{
+        const newPerson = new Person({name, number})
+        newPerson.save()
+        .then(savedPerson => {
+            res.json(savedPerson.toJSON())
+        })
+        .catch(error => next(error))
+    }
 })
 
 // Update a new person

@@ -4,7 +4,8 @@
   "description": "Phonebook backend for the Full stack open 2020 course",
   "main": "index.js",
   "scripts": {
-    "build:ui": "BACKEND_ROOT=$(pwd) && FRONTEND_ROOT=$(cat frontend_path) && rm -rf build && cd $FRONTEND_ROOT && npm run build --prod && cp -r build $BACKEND_ROOT",
+    "build:ui": "BACKEND_ROOT=$(pwd) && FRONTEND_ROOT=\"$(pwd)/frontend\" && rm -rf build && cd $FRONTEND_ROOT && npm run build --prod",
+    "build:ui-dev": "NODE_ENV=dev && BACKEND_ROOT=$(pwd) && FRONTEND_ROOT=\"$(pwd)/frontend\" && rm -rf build && cd $FRONTEND_ROOT && npm run build-dev",
     "deploy": "git push heroku master",
     "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && npm run deploy",
     "logs:prod": "heroku logs --tail",
@@ -27,6 +28,7 @@
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "mongoose": "^5.9.10",
+    "mongoose-unique-validator": "^2.0.3",
     "morgan": "^1.10.0"
   },
   "devDependencies": {
