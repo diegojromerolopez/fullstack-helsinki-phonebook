@@ -14,7 +14,7 @@ app.use(morgan(':method :url :status :response-time ms - :res[content-length] :b
 
 const Person = require('./models/person')
 
-  
+// Get phonebook info
 app.get('/info', (req, res) => {
     Person.countDocuments().then((count) => {
         res
@@ -24,38 +24,108 @@ app.get('/info', (req, res) => {
     })
 })
 
-app.get('/api/persons', (req, res) => {
-    Person.find({}).then(persons => {
+// Get all persons
+app.get('/api/persons', (req, res, next) => {
+    Person.find({})
+    .then(persons => {
         res.json(persons.map(person => person.toJSON()))
-      })
+    })
+    .catch(error => next(error))
 })
 
-app.get('/api/persons/:id', (req, res) => {
+// Get a person in database
+app.get('/api/persons/:id', (req, res, next) => {
     const personId = req.params.id
-    Person.findById(personId).then(person => {
+    Person.findById(personId)
+    .then(person => {
+      if (person) {
         res.json(person.toJSON())
+      } else {
+        res.status(404).end()
+      }
     })
+    .catch(error => next(error))
 })
 
-app.post('/api/persons', (request, response) => {
-    const body = request.body
-    if (!body.name || !body.number) {
-        return response.status(400).json({error: 'name or number are missing'})
+// Add a new person
+app.post('/api/persons', (req, res, next) => {
+    const body = req.body
+    const name = body.name
+    const number = body.number
+    if (!name || !number) {
+        return res.status(400)
+                  .json({error: 'name or number are missing'})
     }
-    const newPerson = new Person({name: body.name, number: body.number})
-    newPerson.save().then(savedPerson => {
-        response.json(savedPerson.toJSON())
+    // Check if the name exists, if that's the case, update
+    // that person's phone number
+    Person.findOne({name}).then(person =>{
+        if(person){
+            Person.findByIdAndUpdate(person._id, {number}, { new: true })
+            .then(updatedPerson => {
+                res.json(updatedPerson.toJSON())
+            })
+            .catch(error => next(error))
+        }else{
+            const newPerson = new Person({name, number})
+            newPerson.save()
+            .then(savedPerson => {
+                res.json(savedPerson.toJSON())
+            })
+            .catch(error => next(error))
+        }
     })
+    .catch(error => next(error))
+
+    
 })
 
-app.delete('/api/persons/:id', (request, response) => {
-    const personId = request.params.id
-    Person.findByIdAndRemove(personId).then(()=>{
-        response.status(204).end()
+// Update a new person
+app.put('/api/persons/:id', (req, res, next) => {
+    const body = req.body
+    const personId = req.params.id
+
+    const person = {
+      name: body.name,
+      number: body.number,
+    }
+  
+    Person.findByIdAndUpdate(personId, person, { new: true })
+      .then(updatedPerson => {
+        res.json(updatedPerson.toJSON())
+      })
+      .catch(error => next(error))
+  })
+
+// Delete a new person
+app.delete('/api/persons/:id', (req, res, next) => {
+    const personId = req.params.id
+    Person.findByIdAndRemove(personId)
+    .then(result => {
+        if(result){
+            res.status(204).end()
+        }else{
+            res.status(404).end()
+        }
     })
+    .catch(error => next(error))
 })
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
 })
+
+
+const unknownEndpoint = (request, response) => {
+    response.status(404).send({ error: 'unknown endpoint' }).end()
+  }
+  
+  // handler of requests with unknown endpoint
+  app.use(unknownEndpoint)
+  
+  const errorHandler = (error, request, response, next) => {
+    // ...
+  }
+  
+  // handler of requests with result to errors
+  app.use(errorHandler)
