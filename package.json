@@ -6,7 +6,8 @@
   "scripts": {
     "deploy": "git push heroku master",
     "postinstall": "cd backend && npm install",
-    "start": "cd backend && npm start"
+    "start": "cd backend && npm start",
+    "dev": "cd backend && nodemon index.js"
   },
   "repository": {
     "type": "git",
